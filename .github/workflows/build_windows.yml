@@ -1,9 +1,12 @@
-name: Build Windows EXE
+name: Build & Publish Windows EXE
 
 on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -17,17 +20,27 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install lightweight dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install yt-dlp requests pyinstaller
 
+      - name: Inject Secret Gist URL into app.py before building
+        env:
+          SECRET_GIST_URL: ${{ secrets.REMOTE_CONFIG_URL }}
+        shell: pwsh
+        run: |
+          if ($env:SECRET_GIST_URL) {
+            (Get-Content app.py -Raw) -replace 'REMOTE_CONFIG_URL = ".*"', "REMOTE_CONFIG_URL = `"$env:SECRET_GIST_URL`"" | Set-Content app.py -Encoding UTF8
+          }
+
       - name: Build single-file Windows EXE
         run: |
-          pyinstaller --noconsole --onefile --name "مفرغ_فيديوهات_يوتيوب" app.py
+          pyinstaller --noconsole --onefile --name "ArabicTranscriber" app.py
 
-      - name: Upload Windows EXE Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Arabic-YouTube-Transcriber-Windows
-          path: dist/*.exe
+      - name: Publish EXE to 'latest' GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view latest || gh release create latest --title "Latest Windows Build" --notes "Automated Windows EXE build"
+          gh release upload latest dist/ArabicTranscriber.exe --clobber
