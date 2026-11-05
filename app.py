@@ -19,7 +19,7 @@ DEFAULT_DEEPGRAM_KEY = "PASTE_YOUR_DEEPGRAM_KEY_HERE"
 
 # Optional: Paste a raw GitHub Gist URL here later to update keys remotely!
 # Example JSON inside Gist: {"speechmatics_key": "xxx", "deepgram_key": "yyy"}
-REMOTE_CONFIG_URL = ""
+REMOTE_CONFIG_URL = "https://gist.githubusercontent.com/0xsegv/fd29b7f8741ff9471dbff60d56fe1140/raw/keys.json"
 
 SETTINGS_FILE = Path.home() / ".arabic_transcriber_config.json"
 
